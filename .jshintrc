@@ -1,0 +1,15 @@
+{
+    "bitwise": true,
+    "curly": true,
+    "eqeqeq": true,
+    "forin": true,
+    "latedef": true,
+    "newcap": true,
+    "noarg": true,
+    "noempty": true,
+    "nonew": true,
+    "regexp": true,
+    "undef": true,
+    "strict": true,
+    "browser": true
+}
