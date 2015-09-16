@@ -79,7 +79,7 @@ function subInPath(path, currentSubscriptions, callback, channel) {
     }
 }
 
-var Arbiter = new (function () {
+var connect = new (function () {
     var self = this;
     this.apply = true;
     this.subscriptions = {};
