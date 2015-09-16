@@ -63,33 +63,7 @@ function subInPath(path, currentSubscriptions, callback, channel) {
 var Arbiter = new (function () {
     var self = this;
     this.apply = true;
-    this.subscriptions = {
-        //
-        //luxor: {
-        //    sidebar: {
-        //        event: {
-        //            '*': {
-        //                _: [{
-        //                    id: 1, callback: function (data, msg) {
-        //                    }
-        //                }]
-        //            },
-        //            click: {
-        //                _: []
-        //            }
-        //        }
-        //    },
-        //    bookmark: {},
-        //    '*': {
-        //        event: {
-        //            '*': {
-        //                _: []
-        //            }
-        //        }
-        //    }
-        //}
-
-    };
+    this.subscriptions = {};
 
     this.publish = function (channel, data) {
         console.debug('[Arbiter] publish',channel);
