@@ -3,6 +3,16 @@ var uniqueId = 0;
 var lookupById = [];
 var availableIds = [];
 
+if (!console) {
+    console = {
+        debug: function () {
+        }
+    };
+} else if (!console.debug) {
+    console.debug = function () {
+    };
+}
+
 function pubInPath(path, currentSubscriptions, data, channel) {
     var size = path.length;
     var current = currentSubscriptions;
@@ -10,11 +20,20 @@ function pubInPath(path, currentSubscriptions, data, channel) {
     for (i = 0; i < size && current; i++) {
         var currentElement = path[i];
         if (currentElement !== '') {
-            //if current subs has wildcard subscribers, also publish to them
-            if (current.hasOwnProperty('*') && i + 1 < size) {
-                pubInPath(path.slice(i + 1), current['*'], data, channel);
+            if (currentElement !== '*') {
+                //if current subs has wildcard subscribers, also publish to them
+                if (current.hasOwnProperty('*')) {
+                    pubInPath(path.slice(i + 1), current['*'], data, channel);
+                }
+                current = current[currentElement];
+            } else {
+                (function (subpath, curr) {
+
+                    Object.keys(curr).map(function (k) {
+                        pubInPath(subpath, curr[k], data, channel);
+                    });
+                })(path.slice(i + 1), current);
             }
-            current = current[currentElement];
         }
     }
     if (i === size && current && current._) {
@@ -66,7 +85,7 @@ var Arbiter = new (function () {
     this.subscriptions = {};
 
     this.publish = function (channel, data) {
-        console.debug('[Arbiter] publish',channel);
+        console.debug('[Arbiter] publish', channel);
 
         if (!channel || channel === '') {
             return false;
@@ -79,7 +98,7 @@ var Arbiter = new (function () {
     };
 
     this.subscribe = function (channel, callback) {
-        console.debug('[Arbiter] subscribe',channel);
+        console.debug('[Arbiter] subscribe', channel);
         if (!channel || channel === '') {
             return false;
         }

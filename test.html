@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<script src="arbiter.js"></script>
+
+<ul id="#result">
+
+</ul>
+<script type="application/javascript">
+
+    Arbiter.subscribe('/channel/sidebar/event/click', function (data, channel) {
+        console.log('sidebar click', data);
+
+        var node = document.createElement("LI");
+        var textnode = document.createTextNode(channel);
+        node.appendChild(textnode);
+        document.getElementById('#result').appendChild(node);
+    });
+
+    Arbiter.subscribe('/channel/*/event/click', function (data, channel) {
+        console.log('Any click', data);
+
+        var node = document.createElement("LI");
+        var textnode = document.createTextNode(channel);
+        node.appendChild(textnode);
+        document.getElementById('#result').appendChild(node);
+    });
+
+    Arbiter.subscribe('/channel/*/event/*', function (data, channel) {
+        console.log('Any event', data);
+
+        var node = document.createElement("LI");
+        var textnode = document.createTextNode(channel);
+        node.appendChild(textnode);
+        document.getElementById('#result').appendChild(node);
+    });
+
+
+    Arbiter.subscribe('/channel/sidebar/event/*', function (data, channel) {
+        console.log('Any sidebar event', data);
+
+        var node = document.createElement("LI");
+        var textnode = document.createTextNode(channel);
+        node.appendChild(textnode);
+        document.getElementById('#result').appendChild(node);
+    });
+
+
+    Arbiter.subscribe('/channel/bookmark/api/add', function (data, channel) {
+        console.log('bookmar api add', data);
+
+        var node = document.createElement("LI");
+        var textnode = document.createTextNode(channel);
+        node.appendChild(textnode);
+        document.getElementById('#result').appendChild(node);
+    });
+
+
+    Arbiter.publish('/channel/sidebar/event/click', 'OK');
+    Arbiter.publish('/channel/bookmark/api/add', 'OK');
+    Arbiter.publish('/channel/bookmark/event/hover', 'OK');
+    Arbiter.publish('/channel/sidebar/event/hover', 'OK');
+    Arbiter.publish('/nonExistent', 'OK');
+</script>
+</body>
+</html>
