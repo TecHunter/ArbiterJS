@@ -1,154 +1,124 @@
+var uniqueId = 0;
 
-/*
- Arbiter.js
- by Matt Kruse
- http://ArbiterJS.com - See site for documentation
+var lookupById = [];
+var availableIds = [];
 
- This work is in the public domain and may be used in any way, for any purpose, without restriction.
- */
-var Arbiter = (function () {
-    var create_arbiter = function () {
-        var subscriptions = {};
-        var wildcard_subscriptions = {};
-        var persistent_messages = {};
-        var id_lookup = {};
-        var new_id = 1;
-        return {
-            'version':'1.0'
-            ,'updated_on':'2011-12-19'
-            ,'create': function() { return create_arbiter(); }
-            ,'subscribe': function() {
-                var msg, messages, subscription_list, persisted_subscription_list, subscription, func, options={}, context, wildcard=false, priority=0, id, return_ids=[];
-                if (arguments.length<2) { return null; }
-                messages = arguments[0];
-                func = arguments[arguments.length-1]; // Function is always last argument
-                if (arguments.length>2) { options = arguments[1] || {}; }
-                if (arguments.length>3) { context = arguments[2]; }
-
-                if (options.priority) {
-                    priority = options.priority;
-                }
-                if (typeof messages=="string") {
-                    messages = messages.split(/[,\s]+/);
-                }
-                for (var i=0; i<messages.length; i++) {
-                    msg = messages[i];
-                    // If the message ends in *, it's a wildcard subscription
-                    if (/\*$/.test(msg)) {
-                        wildcard = true;
-                        msg = msg.replace(/\*$/,'');
-                        subscription_list = wildcard_subscriptions[msg];
-                        if (!subscription_list) {
-                            wildcard_subscriptions[msg] = subscription_list = [];
-                        }
-                    }
-                    else {
-                        subscription_list = subscriptions[msg];
-                        if (!subscription_list) {
-                            subscriptions[msg] = subscription_list = [];
-                        }
-                    }
-                    id = new_id++;
-                    subscription = {'id':id,'f':func,p:priority,self:context,'options':options};
-                    id_lookup[id] = subscription;
-                    subscription_list.push ( subscription );
-                    // Sort the list by priority
-                    subscription_list = subscription_list.sort( function(a,b) {
-                        return (a.p>b.p?-1:a.p==b.p?0:1);
-                    } );
-                    // Put it back in after sorting
-                    if (wildcard) {
-                        wildcard_subscriptions[msg] = subscription_list;
-                    }
-                    else {
-                        subscriptions[msg] = subscription_list;
-                    }
-                    return_ids.push(id);
-
-                    // Check to see if there are any persistent messages that need
-                    // to be fired immediately
-                    if (!options.persist && persistent_messages[msg]) {
-                        persisted_subscription_list = persistent_messages[msg];
-                        for (var j=0; j<persisted_subscription_list.length; j++) {
-                            subscription.f.call( subscription.self, persisted_subscription_list[j], {persist:true} );
-                        }
-                    }
-                }
-                // Return an array of id's, or just 1
-                if (messages.length>0) {
-                    return return_ids;
-                }
-                return return_ids[0];
+function pubInPath(path, currentSubscriptions, data, channel) {
+    var size = path.length;
+    var current = currentSubscriptions;
+    var i;
+    for (i = 0; i < size && current; i++) {
+        var currentElement = path[i];
+        if (currentElement !== '') {
+            //if current subs has wildcard subscribers, also publish to them
+            if (current.hasOwnProperty('*') && i + 1 < size) {
+                pubInPath(path.slice(i + 1), current['*'], data, channel);
             }
+            current = current[currentElement];
+        }
+    }
+    if (i === size && current && current._) {
+        current._.map(function (obj) {
+            return obj.callback.call(window, data, channel);
+        });
+    }
+}
 
-            ,'publish': function(msg, data, options) {
-                var async_timeout=10,result,overall_result=true,cancelable=true,internal_data={},subscriber, wildcard_msg;
-                var subscription_list = subscriptions[msg] || [];
-                options = options || {};
-                // Look through wildcard subscriptions to find any that apply
-                for (wildcard_msg in wildcard_subscriptions) {
-                    if (msg.indexOf(wildcard_msg)==0) {
-                        subscription_list = subscription_list.concat( wildcard_subscriptions[wildcard_msg] );
-                    }
-                }
-                if (options.persist===true) {
-                    if (!persistent_messages[msg]) {
-                        persistent_messages[msg] = [];
-                    }
-                    persistent_messages[msg].push( data );
-                }
-                if (subscription_list.length==0) {
-                    return overall_result;
-                }
-                if (typeof options.cancelable=="boolean") {
-                    cancelable = options.cancelable;
-                }
-                for (var i=0; i<subscription_list.length; i++) {
-                    subscriber = subscription_list[i];
-                    if (subscriber.unsubscribed) {
-                        continue; // Ignore unsubscribed listeners
-                    }
-                    try {
-                        // Publisher OR subscriber may request async
-                        if (options.async===true || (subscriber.options && subscriber.options.async)) {
-                            setTimeout( (function(inner_subscriber) {
-                                return function() {
-                                    inner_subscriber.f.call( inner_subscriber.self, data, msg, internal_data );
-                                };
-                            })(subscriber), async_timeout++ );
-                        }
-                        else {
-                            result = subscriber.f.call( subscriber.self, data, msg, internal_data );
-                            if (cancelable && result===false) {
-                                break;
-                            }
-                        }
-                    }
-                    catch(e) {
-                        overall_result = false;
-                    }
-                }
-                return overall_result;
+function subInPath(path, currentSubscriptions, callback, channel) {
+    var size = path.length;
+    var current = currentSubscriptions;
+    var i, recurs = false;
+    for (i = 0; i < size && !recurs; i++) {
+        var currentElement = path[i];
+
+        if (currentElement === '*') {
+            if (!current['*']) {
+                current['*'] = {};
             }
-
-            ,'unsubscribe': function(id) {
-                if (id_lookup[id]) {
-                    id_lookup[id].unsubscribed = true;
-                    return true;
-                }
-                return false;
+            return subInPath(path.slice(i + 1), current['*'], callback, channel);
+        } else {
+            if (!current[currentElement]) {
+                current[currentElement] = {};
             }
+            current = current[currentElement];
+        }
+    }
+    if (!recurs) {
+        if (!current._) {
+            current._ = [];
+        }
+        var newId;
+        if (availableIds.length > 0) {
+            newId = availableIds.pop();
+            lookupById[newId] = channel;
+        } else {
+            newId = uniqueId++;
+            lookupById.push(channel);
+        }
+        current._.push({id: newId, callback: callback, channel: channel});
+        return newId;
+    }
+}
 
-            ,'resubscribe': function(id) {
-                if (id_lookup[id]) {
-                    id_lookup[id].unsubscribed = false;
-                    return true;
-                }
-                return false;
-            }
+var Arbiter = new (function () {
+    var self = this;
+    this.apply = true;
+    this.subscriptions = {
+        //
+        //luxor: {
+        //    sidebar: {
+        //        event: {
+        //            '*': {
+        //                _: [{
+        //                    id: 1, callback: function (data, msg) {
+        //                    }
+        //                }]
+        //            },
+        //            click: {
+        //                _: []
+        //            }
+        //        }
+        //    },
+        //    bookmark: {},
+        //    '*': {
+        //        event: {
+        //            '*': {
+        //                _: []
+        //            }
+        //        }
+        //    }
+        //}
 
-        };
     };
-    return create_arbiter();
 
+    this.publish = function (channel, data) {
+        console.debug('[Arbiter] publish',channel);
+
+        if (!channel || channel === '') {
+            return false;
+        }
+        var path = channel.split('/');
+        if (path[0] === '') {
+            path = path.slice(1);
+        }
+        return pubInPath(path, self.subscriptions, data, channel);
+    };
+
+    this.subscribe = function (channel, callback) {
+        console.debug('[Arbiter] subscribe',channel);
+        if (!channel || channel === '') {
+            return false;
+        }
+        var path = channel.split('/');
+        if (path[0] === '') {
+            path = path.slice(1);
+        }
+        return subInPath(path, self.subscriptions, callback, channel);
+    };
+
+    this.unsubscribe = function () {
+
+    };
 })();
+
+
