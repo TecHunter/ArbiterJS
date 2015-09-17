@@ -5,18 +5,18 @@
     <title></title>
 </head>
 <body>
-<script src="connect.js"></script>
+<script src="pubsub.js"></script>
 
 <ul id="#result">
 
 </ul>
 <script type="application/javascript">
-
-    connect.subscribe('/channel/sidebar/event/click', function (data, channel) {
+    var connect = ps;
+    connect.subscribe('/channel/sidebar/event/click', function (data) {
         console.log('sidebar click', data);
 
         var node = document.createElement("LI");
-        var textnode = document.createTextNode(channel);
+        var textnode = document.createTextNode(this.channel);
         node.appendChild(textnode);
         document.getElementById('#result').appendChild(node);
     });
@@ -25,7 +25,7 @@
         console.log('Any click', data);
 
         var node = document.createElement("LI");
-        var textnode = document.createTextNode(channel);
+        var textnode = document.createTextNode(this.channel);
         node.appendChild(textnode);
         document.getElementById('#result').appendChild(node);
     });
@@ -34,7 +34,7 @@
         console.log('Any event', data);
 
         var node = document.createElement("LI");
-        var textnode = document.createTextNode(channel);
+        var textnode = document.createTextNode(this.channel);
         node.appendChild(textnode);
         document.getElementById('#result').appendChild(node);
     });
@@ -44,7 +44,7 @@
         console.log('Any sidebar event', data);
 
         var node = document.createElement("LI");
-        var textnode = document.createTextNode(channel);
+        var textnode = document.createTextNode(this.channel);
         node.appendChild(textnode);
         document.getElementById('#result').appendChild(node);
     });
@@ -54,7 +54,7 @@
         console.log('bookmar api add', data);
 
         var node = document.createElement("LI");
-        var textnode = document.createTextNode(channel);
+        var textnode = document.createTextNode(this.channel);
         node.appendChild(textnode);
         document.getElementById('#result').appendChild(node);
     });

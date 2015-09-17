@@ -1,4 +1,4 @@
-var loader = function () {
+function loader() {
     'use strict';
     var uniqueId = 0;
 
