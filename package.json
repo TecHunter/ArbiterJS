@@ -22,6 +22,8 @@
   },
   "homepage": "https://github.com/TecHunter/pubsubJS",
   "devDependencies": {
-    "karma": "^0.13.9"
+    "jasmine-core": "^2.3.4",
+    "karma": "^0.13.9",
+    "karma-jasmine": "^0.3.6"
   }
 }

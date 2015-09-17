@@ -8,8 +8,7 @@
   "description": "A small publish/subscribe library for javascript",
   "main": "pubsub.js",
   "moduleType": [
-    "amd",
-    "node"
+    "amd"
   ],
   "keywords": [
     "publish",
