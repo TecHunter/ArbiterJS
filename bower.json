@@ -1,12 +1,12 @@
 {
-  "name": "connect",
+  "name": "pubsubJS",
   "version": "1.0.0",
-  "homepage": "https://github.com/TecHunter/connect",
+  "homepage": "https://github.com/TecHunter/pubsubJS",
   "authors": [
     "TecHunter <techunter.chaos@gmail.com>"
   ],
   "description": "A small publish/subscribe library for javascript",
-  "main": "connect.js",
+  "main": "pubsub.js",
   "moduleType": [
     "amd",
     "node"

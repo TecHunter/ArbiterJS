@@ -1,14 +1,14 @@
 {
-  "name": "connectJS",
+  "name": "pubsubJS",
   "version": "1.0.0",
   "description": "A small publish subscribe library",
-  "main": "connect.js",
+  "main": "pubsub.js",
   "scripts": {
     "test": "test.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TecHunter/connect.git"
+    "url": "https://github.com/TecHunter/pubsubJS.git"
   },
   "keywords": [
     "publish",
@@ -18,7 +18,10 @@
   "author": "TecHunter",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/TecHunter/connect/issues"
+    "url": "https://github.com/TecHunter/pubsubJS/issues"
   },
-  "homepage": "https://github.com/TecHunter/connect"
+  "homepage": "https://github.com/TecHunter/pubsubJS",
+  "devDependencies": {
+    "karma": "^0.13.9"
+  }
 }
