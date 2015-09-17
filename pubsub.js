@@ -1,4 +1,4 @@
-define([], function () {
+var loader = function () {
     'use strict';
     var uniqueId = 0;
 
@@ -145,5 +145,9 @@ define([], function () {
 
     return new PubSub();
 
-});
-
+};
+if ( typeof define === "function" && define.amd ) {
+    define([], loader);
+}else{
+    window.ps = loader();
+}
